@@ -1,0 +1,563 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { 
+  Home, Users, CreditCard, Settings, LogOut, Menu, X, 
+  TrendingUp, DollarSign, CheckCircle, Clock, Phone, Volume2,
+  ArrowUpRight, ArrowDownRight, Search, Filter, Bell
+} from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+export default function AdminDashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('overview')
+
+  // Sample data
+  const transactionData = [
+    { month: 'Jan', amount: 45000 },
+    { month: 'Feb', amount: 52000 },
+    { month: 'Mar', amount: 48000 },
+    { month: 'Apr', amount: 61000 },
+    { month: 'May', amount: 55000 },
+    { month: 'Jun', amount: 67000 },
+  ]
+
+  const transactionTypeData = [
+    { name: 'Loans', value: 45 },
+    { name: 'Savings', value: 30 },
+    { name: 'Withdrawals', value: 15 },
+    { name: 'Contributions', value: 10 },
+  ]
+
+  const recentTransactions = [
+    { id: 'TX001', type: 'Loan', recipient: 'Mary Wanjiku', amount: 5000, status: 'Approved', date: '2024-11-26', approvers: ['Chair', 'Treasurer'] },
+    { id: 'TX002', type: 'Withdrawal', recipient: 'John Kamau', amount: 3000, status: 'Pending', date: '2024-11-26', approvers: ['Chair'] },
+    { id: 'TX003', type: 'Contribution', recipient: 'Group Fund', amount: 2000, status: 'Completed', date: '2024-11-25', approvers: ['Auto'] },
+    { id: 'TX004', type: 'Loan', recipient: 'Grace Achieng', amount: 7500, status: 'Approved', date: '2024-11-25', approvers: ['Chair', 'Treasurer', 'Secretary'] },
+    { id: 'TX005', type: 'Withdrawal', recipient: 'Peter Omondi', amount: 4000, status: 'Completed', date: '2024-11-24', approvers: ['Chair', 'Treasurer'] },
+  ]
+
+  const members = [
+    { id: 1, name: 'Mary Wanjiku', role: 'Chairperson', phone: '+254 712 345 678', balance: 15000, status: 'Active' },
+    { id: 2, name: 'John Kamau', role: 'Treasurer', phone: '+254 723 456 789', balance: 12000, status: 'Active' },
+    { id: 3, name: 'Grace Achieng', role: 'Secretary', phone: '+254 734 567 890', balance: 18000, status: 'Active' },
+    { id: 4, name: 'Peter Omondi', role: 'Member', phone: '+254 745 678 901', balance: 9000, status: 'Active' },
+    { id: 5, name: 'Sarah Muthoni', role: 'Member', phone: '+254 756 789 012', balance: 11000, status: 'Active' },
+  ]
+
+  const COLORS = ['#16a34a', '#22c55e', '#4ade80', '#86efac']
+
+  const stats = [
+    { label: 'Total Balance', value: 'KES 65,000', change: '+12.5%', icon: DollarSign, color: 'bg-green-500' },
+    { label: 'Active Members', value: '25', change: '+3', icon: Users, color: 'bg-blue-500' },
+    { label: 'Pending Approvals', value: '3', change: '-2', icon: Clock, color: 'bg-yellow-500' },
+    { label: 'Monthly Transactions', value: '47', change: '+8.2%', icon: TrendingUp, color: 'bg-purple-500' },
+  ]
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        <div className="flex items-center justify-between h-16 px-6 border-b">
+          <div className="flex items-center">
+            <Volume2 className="h-8 w-8 text-primary-600" />
+            <span className="ml-2 text-xl font-bold text-primary-700">SautiChama</span>
+          </div>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        <nav className="p-4 space-y-2">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition ${
+              activeTab === 'overview' ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            <Home className="h-5 w-5 mr-3" />
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('transactions')}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition ${
+              activeTab === 'transactions' ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            <CreditCard className="h-5 w-5 mr-3" />
+            Transactions
+          </button>
+          <button
+            onClick={() => setActiveTab('members')}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition ${
+              activeTab === 'members' ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            <Users className="h-5 w-5 mr-3" />
+            Members
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`w-full flex items-center px-4 py-3 rounded-lg transition ${
+              activeTab === 'settings' ? 'bg-primary-50 text-primary-700' : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            <Settings className="h-5 w-5 mr-3" />
+            Settings
+          </button>
+        </nav>
+
+        <div className="absolute bottom-0 w-full p-4 border-t">
+          <Link to="/">
+            <Button variant="ghost" className="w-full justify-start">
+              <LogOut className="h-5 w-5 mr-3" />
+              Back to Home
+            </Button>
+          </Link>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="lg:pl-64">
+        {/* Top Bar */}
+        <header className="bg-white shadow-sm sticky top-0 z-40">
+          <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden">
+              <Menu className="h-6 w-6" />
+            </button>
+            
+            <div className="flex-1 flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-gray-900 ml-4 lg:ml-0">Admin Dashboard</h1>
+              <div className="flex items-center space-x-4">
+                <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full">
+                  <Bell className="h-6 w-6" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
+                    MR
+                  </div>
+                  <div className="ml-3 hidden sm:block">
+                    <p className="text-sm font-medium text-gray-700">Mary Wanjiku</p>
+                    <p className="text-xs text-gray-500">Chairperson</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Dashboard Content */}
+        <main className="p-4 sm:p-6 lg:p-8">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {stats.map((stat, index) => (
+                  <Card key={index}>
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                          <p className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</p>
+                          <p className={`text-sm mt-2 ${stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'}`}>
+                            {stat.change.startsWith('+') ? <ArrowUpRight className="inline h-4 w-4" /> : <ArrowDownRight className="inline h-4 w-4" />}
+                            {stat.change}
+                          </p>
+                        </div>
+                        <div className={`${stat.color} p-3 rounded-lg`}>
+                          <stat.icon className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Transaction Trends</CardTitle>
+                    <CardDescription>Monthly transaction volume (KES)</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={transactionData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="month" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="amount" stroke="#16a34a" strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Transaction Types</CardTitle>
+                    <CardDescription>Distribution by category</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={transactionTypeData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {transactionTypeData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Recent Transactions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Transactions</CardTitle>
+                  <CardDescription>Latest activities requiring attention</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {recentTransactions.slice(0, 5).map((transaction) => (
+                      <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition">
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            transaction.status === 'Approved' ? 'bg-green-100' :
+                            transaction.status === 'Pending' ? 'bg-yellow-100' :
+                            'bg-blue-100'
+                          }`}>
+                            <CreditCard className={`h-5 w-5 ${
+                              transaction.status === 'Approved' ? 'text-green-600' :
+                              transaction.status === 'Pending' ? 'text-yellow-600' :
+                              'text-blue-600'
+                            }`} />
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{transaction.recipient}</p>
+                            <p className="text-sm text-gray-500">{transaction.type} • {transaction.date}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900">KES {transaction.amount.toLocaleString()}</p>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            transaction.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                            transaction.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {transaction.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'transactions' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">All Transactions</h2>
+                  <p className="text-gray-600">Manage and monitor all chama transactions</p>
+                </div>
+                <Button className="bg-primary-600 hover:bg-primary-700">
+                  <Phone className="h-4 w-4 mr-2" />
+                  New Request
+                </Button>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1 relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search transactions..."
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <Button variant="outline">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filter
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approvers</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {recentTransactions.map((transaction) => (
+                          <tr key={transaction.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{transaction.id}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{transaction.recipient}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">KES {transaction.amount.toLocaleString()}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                transaction.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                                transaction.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-blue-100 text-blue-800'
+                              }`}>
+                                {transaction.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.approvers.join(', ')}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{transaction.date}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <Button variant="ghost" size="sm">View</Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'members' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Members</h2>
+                  <p className="text-gray-600">Manage chama members and roles</p>
+                </div>
+                <Button className="bg-primary-600 hover:bg-primary-700">
+                  <Users className="h-4 w-4 mr-2" />
+                  Add Member
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {members.map((member) => (
+                  <Card key={member.id} className="hover:shadow-lg transition">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-12 h-12 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          member.role === 'Chairperson' ? 'bg-purple-100 text-purple-800' :
+                          member.role === 'Treasurer' ? 'bg-blue-100 text-blue-800' :
+                          member.role === 'Secretary' ? 'bg-green-100 text-green-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {member.role}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{member.name}</h3>
+                      <div className="space-y-2 text-sm text-gray-600">
+                        <div className="flex items-center">
+                          <Phone className="h-4 w-4 mr-2" />
+                          {member.phone}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Balance:</span>
+                          <span className="font-semibold text-primary-700">KES {member.balance.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span>Status:</span>
+                          <span className="text-green-600 font-medium">{member.status}</span>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t flex gap-2">
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <Phone className="h-3 w-3 mr-1" />
+                          Call
+                        </Button>
+                        <Button variant="ghost" size="sm" className="flex-1">
+                          View
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+                <p className="text-gray-600">Manage your chama configuration</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Approval Settings</CardTitle>
+                    <CardDescription>Configure multi-signature requirements</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Minimum Approvers Required
+                      </label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option>2 Approvers</option>
+                        <option>3 Approvers</option>
+                        <option>All Officials</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Approval Timeout (hours)
+                      </label>
+                      <input
+                        type="number"
+                        defaultValue="24"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <Button className="w-full">Save Changes</Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Voice Notification Settings</CardTitle>
+                    <CardDescription>Configure voice call preferences</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Default Language
+                      </label>
+                      <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option>Swahili</option>
+                        <option>English</option>
+                        <option>Kikuyu</option>
+                        <option>Luo</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Enable Voice Notifications</span>
+                      <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary-600">
+                        <span className="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition" />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Notify All Members</span>
+                      <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary-600">
+                        <span className="translate-x-6 inline-block h-4 w-4 transform rounded-full bg-white transition" />
+                      </button>
+                    </div>
+                    <Button className="w-full">Save Changes</Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Group Information</CardTitle>
+                    <CardDescription>Update chama details</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Chama Name
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue="Jamii Welfare Group"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Registration Number
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue="CG-2024-001"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue="Nairobi, Kenya"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <Button className="w-full">Update Information</Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Integration Settings</CardTitle>
+                    <CardDescription>API configurations</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Africa's Talking API Key
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="••••••••••••••••"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        USSD Short Code
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue="*384*123#"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <div className="flex items-center">
+                        <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                        <span className="text-sm font-medium text-green-800">API Connected</span>
+                      </div>
+                    </div>
+                    <Button variant="outline" className="w-full">Test Connection</Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  )
+}
