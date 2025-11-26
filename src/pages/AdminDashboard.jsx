@@ -24,6 +24,7 @@ export default function AdminDashboard() {
   const [selectedChamaForView, setSelectedChamaForView] = useState(null)
   const [showChamaDetailModal, setShowChamaDetailModal] = useState(false)
   const [showAddChamaModal, setShowAddChamaModal] = useState(false)
+  const [currentChama, setCurrentChama] = useState(null) // Currently logged-in chama
   const [newChamaForm, setNewChamaForm] = useState({
     chamaName: '',
     contactPerson: '',
@@ -104,6 +105,7 @@ export default function AdminDashboard() {
     name: '',
     role: 'Member',
     phone: '',
+    email: '',
     initialBalance: ''
   })
 
@@ -116,22 +118,29 @@ export default function AdminDashboard() {
     }
   }, [activeTab]);
 
-  const fetchChamas = async () => {
+  const fetchChamas = async (showToast = true) => {
     setChamasLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chamas`);
       const data = await response.json();
-      setChamas(data.data || data || []);
-      addToast('Chamas loaded successfully', 'success');
+      const chamasList = data.data || data || [];
+      setChamas(chamasList);
+      if (showToast) {
+        addToast(`Loaded ${chamasList.length} chama${chamasList.length !== 1 ? 's' : ''}`, 'success');
+      }
     } catch (error) {
       console.error('Error fetching chamas:', error);
-      addToast('Failed to load chamas. Using demo data.', 'error');
-      // Fallback demo data
-      setChamas([
-        { id: 1, chamaName: 'Jamii Welfare Group', registrationNumber: 'CG-2024-001', location: 'Nairobi', memberCount: 25, totalBalance: 65000, status: 'Active' },
-        { id: 2, chamaName: 'Unity Savings Group', registrationNumber: 'CG-2024-002', location: 'Mombasa', memberCount: 18, totalBalance: 42000, status: 'Active' },
-        { id: 3, chamaName: 'Tumaini Chama', registrationNumber: 'CG-2024-003', location: 'Kisumu', memberCount: 32, totalBalance: 89000, status: 'Active' },
-      ]);
+      // Only show error on initial load, not after creation
+      if (showToast && chamas.length === 0) {
+        addToast('Failed to load chamas from backend.', 'error');
+        // Fallback demo data only if no chamas exist
+        setChamas([
+          { id: 1, chamaName: 'Jamii Welfare Group', registrationNumber: 'CG-2024-001', location: 'Nairobi', memberCount: 25, totalBalance: 65000, status: 'Active' },
+          { id: 2, chamaName: 'Unity Savings Group', registrationNumber: 'CG-2024-002', location: 'Mombasa', memberCount: 18, totalBalance: 42000, status: 'Active' },
+          { id: 3, chamaName: 'Tumaini Chama', registrationNumber: 'CG-2024-003', location: 'Kisumu', memberCount: 32, totalBalance: 89000, status: 'Active' },
+        ]);
+      }
+      // If chamas already exist (after creation), don't overwrite with demo data
     } finally {
       setChamasLoading(false);
     }
@@ -175,18 +184,65 @@ export default function AdminDashboard() {
     setShowTransactionDetailModal(false)
   }
 
-  const handleAddMember = (e) => {
+  const handleAddMember = async (e) => {
     e.preventDefault()
-    const member = {
-      id: members.length + 1,
-      ...newMember,
-      balance: parseFloat(newMember.initialBalance) || 0,
-      status: 'Active'
+    
+    if (!currentChama) {
+      addToast('Please select a chama first', 'error')
+      return
     }
-    setMembers([...members, member])
-    addToast(`${member.name} added successfully!`, 'success')
-    setShowAddMemberModal(false)
-    setNewMember({ name: '', role: 'Member', phone: '', initialBalance: '' })
+
+    try {
+      const memberData = {
+        chamaId: currentChama.id,
+        ...newMember,
+        balance: parseFloat(newMember.initialBalance) || 0
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(memberData),
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        const member = {
+          id: members.length + 1,
+          ...newMember,
+          balance: parseFloat(newMember.initialBalance) || 0,
+          status: 'Active'
+        }
+        setMembers([...members, member])
+        addToast(`${newMember.name} added to ${currentChama.chamaName}!`, 'success')
+        setShowAddMemberModal(false)
+        setNewMember({ name: '', role: 'Member', phone: '', email: '', initialBalance: '' })
+      } else {
+        const error = await response.json()
+        addToast(error.message || 'Failed to add member', 'error')
+      }
+    } catch (error) {
+      console.error('Add member error:', error)
+      // Fallback: add to local state
+      const member = {
+        id: members.length + 1,
+        ...newMember,
+        balance: parseFloat(newMember.initialBalance) || 0,
+        status: 'Active'
+      }
+      setMembers([...members, member])
+      addToast(`${newMember.name} added successfully!`, 'success')
+      setShowAddMemberModal(false)
+      setNewMember({ name: '', role: 'Member', phone: '', email: '', initialBalance: '' })
+    }
+  }
+
+  const handleSelectChama = (chama) => {
+    setCurrentChama(chama)
+    setActiveTab('members')
+    addToast(`Managing ${chama.chamaName}`, 'info')
   }
 
   const handleCallMember = (member) => {
@@ -223,7 +279,7 @@ export default function AdminDashboard() {
       
       if (response.ok) {
         const data = await response.json();
-        addToast('Chama registered successfully!', 'success');
+        const chamaName = newChamaForm.chamaName;
         setShowAddChamaModal(false);
         setNewChamaForm({
           chamaName: '',
@@ -234,8 +290,9 @@ export default function AdminDashboard() {
           registrationNumber: '',
           members: ''
         });
-        // Refresh chamas list
-        fetchChamas();
+        // Refresh chamas list from backend
+        await fetchChamas(false);
+        addToast(`${chamaName} registered successfully!`, 'success');
       } else {
         const error = await response.json();
         addToast(error.message || 'Failed to register chama', 'error');
@@ -596,13 +653,40 @@ export default function AdminDashboard() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">Members</h2>
-                  <p className="text-gray-600">Manage chama members and roles</p>
+                  {currentChama ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <Building2 className="h-4 w-4 text-primary-600" />
+                      <p className="text-gray-600">Managing <span className="font-semibold text-primary-700">{currentChama.chamaName}</span></p>
+                    </div>
+                  ) : (
+                    <p className="text-gray-600">Select a chama from "All Chamas" tab to manage members</p>
+                  )}
                 </div>
-                <Button className="bg-primary-600 hover:bg-primary-700" onClick={() => setShowAddMemberModal(true)}>
+                <Button 
+                  className="bg-primary-600 hover:bg-primary-700" 
+                  onClick={() => setShowAddMemberModal(true)}
+                  disabled={!currentChama}
+                >
                   <UserPlus className="h-4 w-4 mr-2" />
                   Add Member
                 </Button>
               </div>
+
+              {!currentChama && (
+                <Card className="bg-yellow-50 border-yellow-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-3">
+                      <Building2 className="h-6 w-6 text-yellow-600 mt-1" />
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">No Chama Selected</h3>
+                        <p className="text-gray-600 text-sm">
+                          To add and manage members, please go to the "All Chamas" tab and click "Manage" on the chama you want to work with.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {members.map((member) => (
@@ -810,17 +894,27 @@ export default function AdminDashboard() {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedChamaForView(chama);
-                                    setShowChamaDetailModal(true);
-                                  }}
-                                >
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View
-                                </Button>
+                                <div className="flex gap-2">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedChamaForView(chama);
+                                      setShowChamaDetailModal(true);
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View
+                                  </Button>
+                                  <Button 
+                                    size="sm"
+                                    className="bg-primary-600 hover:bg-primary-700 text-white"
+                                    onClick={() => handleSelectChama(chama)}
+                                  >
+                                    <Users className="h-4 w-4 mr-1" />
+                                    Manage
+                                  </Button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -1132,10 +1226,20 @@ export default function AdminDashboard() {
       <Modal isOpen={showAddMemberModal} onClose={() => setShowAddMemberModal(false)}>
         <ModalHeader>
           <ModalTitle>Add New Member</ModalTitle>
-          <ModalDescription>Add a new member to your chama</ModalDescription>
+          <ModalDescription>
+            {currentChama ? `Adding member to ${currentChama.chamaName}` : 'Add a new member to your chama'}
+          </ModalDescription>
         </ModalHeader>
         <form onSubmit={handleAddMember}>
           <ModalContent className="space-y-4">
+            {currentChama && (
+              <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary-600" />
+                  <span className="text-sm font-medium text-primary-900">Chama: {currentChama.chamaName}</span>
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
               <input
@@ -1147,40 +1251,54 @@ export default function AdminDashboard() {
                 placeholder="John Doe"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
-              <select
-                required
-                value={newMember.role}
-                onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option>Member</option>
-                <option>Chairperson</option>
-                <option>Treasurer</option>
-                <option>Secretary</option>
-              </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                <input
+                  type="tel"
+                  required
+                  value={newMember.phone}
+                  onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="+254 712 345 678"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <input
+                  type="email"
+                  value={newMember.email}
+                  onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="john@example.com"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-              <input
-                type="tel"
-                required
-                value={newMember.phone}
-                onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="+254 712 345 678"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Initial Balance (KES)</label>
-              <input
-                type="number"
-                value={newMember.initialBalance}
-                onChange={(e) => setNewMember({ ...newMember, initialBalance: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="0"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Role *</label>
+                <select
+                  required
+                  value={newMember.role}
+                  onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option>Member</option>
+                  <option>Chairperson</option>
+                  <option>Treasurer</option>
+                  <option>Secretary</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Initial Balance (KES)</label>
+                <input
+                  type="number"
+                  value={newMember.initialBalance}
+                  onChange={(e) => setNewMember({ ...newMember, initialBalance: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  placeholder="0"
+                />
+              </div>
             </div>
           </ModalContent>
           <ModalFooter>

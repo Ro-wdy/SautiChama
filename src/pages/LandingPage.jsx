@@ -14,11 +14,11 @@ export default function LandingPage() {
   const { addToast } = useToast()
 
   const [signupForm, setSignupForm] = useState({
-    chamaName: '',
-    contactPerson: '',
+    name: '',
     phone: '',
     email: '',
-    members: ''
+    chamaName: '',
+    role: 'Member'
   })
 
   const [contactForm, setContactForm] = useState({
@@ -31,7 +31,7 @@ export default function LandingPage() {
   const handleSignup = async (e) => {
     e.preventDefault()
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/chamas/register`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/members`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,9 +41,9 @@ export default function LandingPage() {
       
       if (response.ok) {
         const data = await response.json()
-        addToast('Registration successful! We will contact you shortly.', 'success')
+        addToast('Registration successful! Welcome to SautiChama.', 'success')
         setShowSignupModal(false)
-        setSignupForm({ chamaName: '', contactPerson: '', phone: '', email: '', members: '' })
+        setSignupForm({ name: '', phone: '', email: '', chamaName: '', role: 'Member' })
       } else {
         const error = await response.json()
         addToast(error.message || 'Registration failed. Please try again.', 'error')
@@ -52,7 +52,7 @@ export default function LandingPage() {
       console.error('Signup error:', error)
       addToast('Registration submitted! We will contact you shortly.', 'success')
       setShowSignupModal(false)
-      setSignupForm({ chamaName: '', contactPerson: '', phone: '', email: '', members: '' })
+      setSignupForm({ name: '', phone: '', email: '', chamaName: '', role: 'Member' })
     }
   }
 
@@ -343,13 +343,13 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Chama?</h2>
+          <h2 className="text-4xl font-bold mb-6">Ready to Join SautiChama?</h2>
           <p className="text-xl mb-8 text-green-100">
-            Join hundreds of groups building trust and transparency with SautiChama
+            Register as a member and start your financial journey with trust and transparency
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="outline" className="bg-white text-primary-700 hover:bg-green-50" onClick={() => setShowSignupModal(true)}>
-              Start Free Trial
+              Join Now
             </Button>
             <Button size="lg" className="bg-primary-800 hover:bg-primary-900" onClick={() => setShowContactModal(true)}>
               Contact Sales
@@ -408,31 +408,20 @@ export default function LandingPage() {
       {/* Signup Modal */}
       <Modal isOpen={showSignupModal} onClose={() => setShowSignupModal(false)}>
         <ModalHeader>
-          <ModalTitle>Get Started with SautiChama</ModalTitle>
-          <ModalDescription>Fill in your chama details to begin your journey</ModalDescription>
+          <ModalTitle>Join SautiChama</ModalTitle>
+          <ModalDescription>Register as a member to start your financial journey</ModalDescription>
         </ModalHeader>
         <form onSubmit={handleSignup}>
           <ModalContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Chama Name *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
               <input
                 type="text"
                 required
-                value={signupForm.chamaName}
-                onChange={(e) => setSignupForm({ ...signupForm, chamaName: e.target.value })}
+                value={signupForm.name}
+                onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="E.g., Jamii Welfare Group"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person *</label>
-              <input
-                type="text"
-                required
-                value={signupForm.contactPerson}
-                onChange={(e) => setSignupForm({ ...signupForm, contactPerson: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Full name"
+                placeholder="Enter your full name"
               />
             </div>
             <div>
@@ -447,32 +436,46 @@ export default function LandingPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
               <input
                 type="email"
+                required
                 value={signupForm.email}
                 onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="email@example.com"
+                placeholder="your.email@example.com"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Number of Members *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Chama Name *</label>
               <input
-                type="number"
+                type="text"
                 required
-                value={signupForm.members}
-                onChange={(e) => setSignupForm({ ...signupForm, members: e.target.value })}
+                value={signupForm.chamaName}
+                onChange={(e) => setSignupForm({ ...signupForm, chamaName: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="e.g., 25"
+                placeholder="Which chama do you want to join?"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+              <select
+                value={signupForm.role}
+                onChange={(e) => setSignupForm({ ...signupForm, role: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="Member">Member</option>
+                <option value="Chairperson">Chairperson</option>
+                <option value="Treasurer">Treasurer</option>
+                <option value="Secretary">Secretary</option>
+              </select>
             </div>
           </ModalContent>
           <ModalFooter>
             <Button type="button" variant="outline" onClick={() => setShowSignupModal(false)}>
               Cancel
             </Button>
-            <Button type="submit">Submit Registration</Button>
+            <Button type="submit">Join SautiChama</Button>
           </ModalFooter>
         </form>
       </Modal>
