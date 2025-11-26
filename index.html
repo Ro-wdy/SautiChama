@@ -134,6 +134,23 @@
 
         /* minor helpers */
         .muted{ color:#7b8f7b; font-size:.95rem; }
+
+        /* Hero highlight: visually emphasizes small taglines and important copy in the hero area */
+        .hero-highlight{
+            display:inline-block; /* keep it compact near hero text */
+            background: rgba(255,255,255,0.12);
+            color: #ffffff; /* strong contrast on green/teal hero bg */
+            padding: .6rem 1rem;
+            border-radius: 12px;
+            font-weight:700;
+            font-size: 1.05rem;
+            box-shadow: 0 8px 30px rgba(9, 50, 31, 0.12);
+            border: 1px solid rgba(255,255,255,0.06);
+            margin-top: 1rem; /* keep spacing consistent */
+        }
+
+        /* Small icon within the hero highlight, hidden from screen readers */
+        .hero-highlight .icon{ margin-right: .5rem; }
         .chip{ padding:.35rem .6rem; background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)); border-radius:999px; font-weight:700; color:white; display:inline-flex; align-items:center; gap:.5rem; }
 
         /* responsive */
@@ -184,7 +201,7 @@
                         <a class="cta-outline" href="#contact">Get Involved</a>
                     </div>
 
-                    <p class="muted" style="margin-top:1rem;">Designed for offline use and local languages — built to protect funds and strengthen communities.</p>
+                    <p class="hero-highlight" role="note"><span class="icon" aria-hidden="true"></span>Available offline and in local languages — protects users' funds from theft or loss and helps build stronger community financial resilience.</p>
                 </div>
 
                 <aside class="hero-card" aria-label="Sample account and security card">
